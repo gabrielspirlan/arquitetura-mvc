@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Usuários</title>
+</head>
+
+<body>
+    <h1>Cadastro de Usuários</h1>
+    <form id="cadastro">
+        <label>Nome:</label>
+        <input type="name" id="nome" placeholder="Digite o nome" required> <br>
+
+        <label>Email:</label>
+        <input type="email" id="email" placeholder="Digite o email" required> <br>
+
+        <label for="password">Senha:</label>
+        <input type="password" id="password" placeholder="Digite a senha" required> <br>
+    </form>
+    <button  id="adicionarBtn">Adicionar</button>
+
+    <h2>Usuários Cadastrados</h2>
+    <ul id="usuariosCadastrados">
+    </ul>
+    <script>
+        const obterClientes = () => fetch('/clientes').then(res => res.json());
+
+        const adicionarCliente = (nome, email, password) => fetch('/clientes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, email, password })
+        })
+
+        // Remover Cliente - Definindo as configurações do método
+        const removerCliente = (index) => {
+            fetch(`/clientes/${index}`, { method: 'DELETE' })
+                .then(async () => {
+                    renderizarLista(await obterClientes());
+                })
+                .catch(error => console.error(error));
+        };
+
+
+        // Evento do botão "Adicionar"
+        document.getElementById('adicionarBtn').addEventListener('click', async () => {
+            console.log("Botão CLICADO!!")
+            const nomeInput = document.getElementById('nome').value.trim()
+            const emailInput = document.getElementById('email').value.trim()
+            const passwordInput = document.getElementById('password').value.trim()
+            if (!nomeInput || !emailInput || !passwordInput) {
+                alert("Preencha todos os campos para cadastrar o usuário!"); 
+            } else {
+                console.log(nomeInput, emailInput, passwordInput)
+                try {
+                    await adicionarCliente(nomeInput, emailInput, password);
+                    renderizarLista(await obterClientes())
+                    document.getElementById('cadastro').reset(); 
+                    alert("Usuário cadastrado com sucesso!"); 
+                } catch (error) {
+                    console.error(error)
+                }
+            }
+        }
+)
+
+        function renderizarLista(itens) {
+            const listaHTML = document.getElementById('usuariosCadastrados');
+            // Renderiza a lista de itens pendentes
+            listaHTML.innerHTML = itens.map((item, index) => `
+                <li>
+                    Nome: ${item.nome} Email: ${item.email}
+                    <button onclick="removerCliente(${index})">Remover</button> 
+                </li>
+            `).join('');
+        }
+    </script>
+</body>
+
+</html>
